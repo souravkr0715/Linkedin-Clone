@@ -1,0 +1,58 @@
+POST http://localhost:9090/register HTTP/1.1
+Content-Type: application/json
+
+
+{
+  "username": "vikrd115am2k",
+  "password": "123456",
+  "email": "vikradm11@e12xample.com",
+  "name": "vikram Kumar"
+}
+
+###
+
+
+POST http://localhost:9090/login HTTP/1.1
+Content-Type: application/json
+
+
+{
+  "email": "vikradm11@e12xample.com",
+  "password": "123456"
+}
+
+
+###
+
+
+GET http://localhost:9090/get_user_and_profile?token=1362f4e9b21a0daf88f485c0e6f6ce0e073948e6a919bd8b39e62b3f8a2f7cb0 HTTP/1.1
+
+###
+
+POST http://localhost:9090/update_profile_data HTTP/1.1
+Content-Type: application/json
+
+{
+  "token": "b474a3c3e7c70d157858f22ab21d17eec5ff08ef3bb6a1eacbf355642de339bb",
+  "bio": "Building things at scale",
+  "currentPosition": "CTO",
+  "pastWork": [
+    {
+      "companyName": "Microsoft",
+      "position": "CTO",
+      "years": "2+"
+    }
+  ],
+  "education": [
+    {
+      "school": "IIIT",
+      "degree": "B.Tech",
+      "fieldOfStudy": "2015-2019"
+    }
+  ]
+}
+
+###
+
+GET http://localhost:9090/user/get_all_users HTTP/1.1
+Content-Type: application/json
