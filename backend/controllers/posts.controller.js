@@ -37,7 +37,7 @@ export const getAllPosts= async (req,res)=>{
   try{
 
 const posts = await Post.find().populate('userId','name username email profilePicture')
-console.log("Fetched posts:", posts)
+
 return res.json({posts})
 
 
@@ -72,7 +72,8 @@ if(post.userId.toString()!== user._id.toString()){
   return res.status(401).json({message:"unauthorized"})
 }
 
-await Post.deletePost({_id:post_id});
+await Post.deleteOne({ _id: post_id });
+return res.json({ message: "Post deleted" });
 
   }catch (error) {
     return res.status(500).json({ message: error.message });
@@ -83,29 +84,28 @@ await Post.deletePost({_id:post_id});
 
 
 
-export const get_comments_by_post = async(req,res)=>{
-  const{post_id}= req.body;
+import Comment from "../models/comments.model.js";
 
-try{
-  const post = await Post.findOne({
-    _id:post_id
-  });
+export const get_comments_by_post = async (req, res) => {
+  const { post_id } = req.query;
 
+  try {
+    const post = await Post.findOne({ _id: post_id });
 
-if(!post){
-  return res.status(404).json({message:"Post not found"})
-}
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
 
-return res.json({comments:post.comments});
+    const comments = await Comment.find({ postId: post_id }).populate(
+      "userId",
+      "name username profilePicture"
+    );
 
-
-}catch(error){
-  return res.status(500).json({message:error.message})
-}
-
-}
-
-
+    return res.json(comments.reverse());
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 
  export const delete_comment_of_user = async (req,res)=>{
@@ -174,3 +174,23 @@ return res.json({message:"Likes incremented"})
 
 
  }
+
+// export const incrementLikes = async (req, res) => {
+//   try {
+//     const { token, post_id } = req.body;
+
+//     const user = await User.findOne({ token });
+//     if (!user) return res.status(404).json({ message: "User not found" });
+
+//     const post = await Post.findByIdAndUpdate(
+//       post_id,
+//       { $inc: { likes: 1 } },
+//       { new: true }
+//     );
+//     if (!post) return res.status(404).json({ message: "Post not found" });
+
+//     return res.json({ message: "Liked", likes: post.likes });
+//   } catch (err) {
+//     return res.status(500).json({ message: err.message });
+//   }
+// };

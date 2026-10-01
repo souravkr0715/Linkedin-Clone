@@ -7,6 +7,8 @@ import fs from "fs";
 import ConnectionRequest from "../models/connections.model.js";
 import Post from "../models/posts.model.js";
 
+import Comment from "../models/comments.model.js";
+
 export const convertUserDataTOPDF = async (userData) => {
   const doc = new PDfDocument();
 
@@ -37,18 +39,14 @@ export const convertUserDataTOPDF = async (userData) => {
 
 export const register = async (req, res) => {
   try {
-
     const { name, email, password, username } = req.body;
 
     if (!name || !email || !password || !username)
       return res.status(400).json({ message: "All fields are required" });
 
-  const user = await User.findOne({
-  $or: [
-    { email },
-    { username }
-  ]
-});
+    const user = await User.findOne({
+      $or: [{ email }, { username }],
+    });
 
     if (user) return res.status(400).json({ message: "User already exists" });
 
@@ -96,7 +94,7 @@ export const login = async (req, res) => {
       },
       {
         token,
-      }
+      },
     );
 
     return res.json({ token: token });
@@ -106,7 +104,6 @@ export const login = async (req, res) => {
 };
 
 export const uploadProfilePicture = async (req, res) => {
-  
   const { token } = req.body;
 
   try {
@@ -158,11 +155,8 @@ export const updateUserProfile = async (req, res) => {
 export const getUserAndProfile = async (req, res) => {
   try {
     const { token } = req.query;
-  
-    
 
     const user = await User.findOne({ token: token });
-        console.log("Found user:", user);
 
     if (!user) {
       return res.status(404).json({ message: "user not found" });
@@ -170,9 +164,8 @@ export const getUserAndProfile = async (req, res) => {
 
     const userProfile = await Profile.findOne({ userId: user._id }).populate(
       "userId",
-      "name email username profilePicture"
+      "name email username profilePicture",
     );
-     console.log("Profile:", userProfile);
 
     return res.json(userProfile);
   } catch (error) {
@@ -207,7 +200,7 @@ export const getAllUserProfile = async (req, res) => {
   try {
     const profiles = await Profile.find().populate(
       "userId",
-      "name username email profilePicture"
+      "name username email profilePicture",
     );
 
     return res.json({ profiles });
@@ -218,12 +211,16 @@ export const getAllUserProfile = async (req, res) => {
 
 export const downloadProfile = async (req, res) => {
   try {
-    const user_id = req.query.id;
+    const user_id = req.query.user_id;
 
-    const userProfile = await Profile.findOne({ userId:user_id }).populate(
+    const userProfile = await Profile.findOne({ userId: user_id }).populate(
       "userId",
-      "name username email profilePicture"
+      "name username email profilePicture",
     );
+
+    if (!userProfile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
 
     let outputPath = await convertUserDataTOPDF(userProfile);
     return res.json({ message: outputPath });
@@ -231,7 +228,6 @@ export const downloadProfile = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
 export const sendConnectionRequest = async (req, res) => {
   const { token, connectionId } = req.body;
 
@@ -269,7 +265,7 @@ export const sendConnectionRequest = async (req, res) => {
 };
 
 export const getMyConnectionRequests = async (req, res) => {
-  const { token } = req.body;
+  const { token } = req.query;
 
   try {
     const user = await User.findOne({ token });
@@ -288,7 +284,7 @@ export const getMyConnectionRequests = async (req, res) => {
 };
 
 export const whatAreMyConnections = async (req, res) => {
-  const { token } = req.body;
+  const { token } = req.query;
 
   try {
     const user = await User.findOne({ token });
@@ -357,7 +353,7 @@ export const commentPost = async (req, res) => {
     const comment = new Comment({
       userId: user._id,
       postId: post_id,
-      comment: commentBody,
+      body: commentBody,
     });
 
     await comment.save();
@@ -367,3 +363,31 @@ export const commentPost = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+
+
+
+export const getUserAndProfileAndUserBasedOnUsername = async(req,res)=>{
+  const {username} = req.query;
+
+  try{
+    const user = await User.findOne({
+      username
+    });
+
+    if(!user){
+      return res.status(400).json({message:"User not found"})
+    }
+
+    const userProfile = await Profile.findOne({userId:user._id})
+    .populate('userId','name username email profilePicture');
+
+    return res.json({"profile":userProfile})
+
+
+
+
+  }catch(error){
+    return res.status(500).json({message:error.message})
+  }
+}
